@@ -12934,6 +12934,23 @@ TextStrokeColor3=Color3.fromRGB(120,0,0),
 table.insert(lines,lbl)
 end
 
+-- 24 random red rectangles forming glitchy "data corruption" blocks
+local rects={}
+for i=1,24 do
+local w=math.random(20,140)
+local h=math.random(2,14)
+local rect=am("Frame",{
+Parent=container,
+BackgroundColor3=(math.random()<0.3) and Color3.fromRGB(255,80,80) or Color3.fromRGB(180,0,0),
+BorderSizePixel=0,
+BackgroundTransparency=math.random(0,40)/100,
+Size=UDim2.new(0,w,0,h),
+Position=UDim2.new(math.random(),0,math.random(),0),
+ZIndex=995,
+})
+table.insert(rects,rect)
+end
+
 -- White ghost layer (gives a soft glow / hard-to-pin "echo")
 local ghostWhite=am("TextLabel",{
 Parent=container,
@@ -13072,6 +13089,15 @@ lbl.Position=UDim2.new(math.random(),0,math.random(),0)
 end
 end
 
+-- ~50% chance per frame to relocate each rectangle (data corruption flicker)
+for _,rect in ipairs(rects)do
+if math.random()<0.5 then
+rect.Position=UDim2.new(math.random(),0,math.random(),0)
+rect.Size=UDim2.new(0,math.random(20,140),0,math.random(2,14))
+rect.BackgroundTransparency=math.random(0,40)/100
+end
+end
+
 -- Jitter ghost
 local jitter=math.max(1,8*(1-progress))
 ghostWhite.Position=UDim2.new(0.5,math.random(-jitter,jitter)+3,0.5,math.random(-jitter,jitter)-1)
@@ -13102,6 +13128,11 @@ for _,lbl in ipairs(lines)do
 an(lbl,fadeT,{
 TextTransparency=1,
 TextStrokeTransparency=1,
+},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
+end
+for _,rect in ipairs(rects)do
+an(rect,fadeT,{
+BackgroundTransparency=1,
 },Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
 end
 end)
