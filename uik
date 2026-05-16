@@ -4938,16 +4938,6 @@ ImageColor3="Icon",
 ImageTransparency=CustomDragImage and 0 or .3,
 },CustomDragImage and {
 ac("UICorner",{CornerRadius=UDim.new(0.25,0)}),
--- brightness overlay
-ac("Frame",{
-Size=UDim2.new(1,0,1,0),
-BackgroundColor3=Color3.new(1,1,1),
-BackgroundTransparency=0.7,
-BorderSizePixel=0,
-ZIndex=2,
-},{
-ac("UICorner",{CornerRadius=UDim.new(0.25,0)}),
-}),
 } or nil)
 })
 local ak=ac("Frame",{
@@ -12910,6 +12900,12 @@ end
 task.wait(0.06)
 au.Closed=false
 
+-- Cool intro: tilted spin-in + extra scale punch
+au.UIElements.Main.Rotation=-10
+an(au.UIElements.Main,0.55,{
+Rotation=0,
+},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
+
 an(au.UIElements.Main.Background,0.2,{
 ImageTransparency=au.Transparent and at.WindUI.TransparencyValue or 0,
 },Enum.EasingStyle.Quint,Enum.EasingDirection.Out):Play()
@@ -12938,10 +12934,10 @@ if au.OpenButtonMain and au.IsOpenButtonEnabled then
 au.OpenButtonMain:Visible(false)
 end
 
-at.WindUI.UIScaleObj.Scale-=0.15000000000000002
+at.WindUI.UIScaleObj.Scale-=0.3
 an(
 at.WindUI.UIScaleObj,
-0.33,
+0.5,
 {Scale=at.WindUI.UIScale},
 Enum.EasingStyle.Back,
 Enum.EasingDirection.Out
@@ -13008,6 +13004,11 @@ end
 au.CanDropdown=false
 au.Closed=true
 
+-- Cool outro: tilt and spin away while shrinking
+an(au.UIElements.Main,0.45,{
+Rotation=8,
+},Enum.EasingStyle.Quint,Enum.EasingDirection.In):Play()
+
 an(au.UIElements.Main.Background,0.32,{
 ImageTransparency=1,
 },Enum.EasingStyle.Quint,Enum.EasingDirection.InOut):Play()
@@ -13023,10 +13024,10 @@ Size=UDim2.new(1,0,1,-240),
 
 an(
 at.WindUI.UIScaleObj,
-0.28,
-{Scale=at.WindUI.UIScale-(0.15000000000000002)},
+0.32,
+{Scale=at.WindUI.UIScale-0.3},
 Enum.EasingStyle.Quint,
-Enum.EasingDirection.Out
+Enum.EasingDirection.In
 ):Play()
 if g then
 if g:IsA"VideoFrame"then
