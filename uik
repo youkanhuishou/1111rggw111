@@ -14,7 +14,6 @@
     License: MIT
 ]]
 
--- Custom drag-handle image (replaces the built-in "move" cross-arrow icon)
 local CustomDragImage = (function()
     local ok, asset = pcall(function()
         local url = "https://raw.githubusercontent.com/youkanhuishou/1111rggw111/main/B2BD6A625884515E358AB1E4EE34BAF6.jpg"
@@ -12889,7 +12888,6 @@ p.Size=B
 end
 end
 
--- Glitch overlay: huge scrambling "S" with pulse + 16 red mono code lines + scanline
 local function PlayGlitchOverlay(duration,fadeOut)
 duration=duration or 0.55
 local chars="01!@#$%^&*<>?/\\|+-=_[](){}~`SsZzXx0123456789"
@@ -12912,7 +12910,6 @@ Parent=au.UIElements.Main,
 ClipsDescendants=true,
 })
 
--- 16 red monospace code lines scattered around (background detail)
 local lines={}
 for i=1,16 do
 local lbl=am("TextLabel",{
@@ -12934,7 +12931,6 @@ TextStrokeColor3=Color3.fromRGB(120,0,0),
 table.insert(lines,lbl)
 end
 
--- 24 random red rectangles forming glitchy "data corruption" blocks
 local rects={}
 for i=1,24 do
 local w=math.random(20,140)
@@ -12951,7 +12947,6 @@ ZIndex=995,
 table.insert(rects,rect)
 end
 
--- White ghost layer (gives a soft glow / hard-to-pin "echo")
 local ghostWhite=am("TextLabel",{
 Parent=container,
 BackgroundTransparency=1,
@@ -12966,7 +12961,6 @@ TextTransparency=0.6,
 ZIndex=997,
 })
 
--- Main S: big, red, scaled, with stroke
 local main=am("TextLabel",{
 Parent=container,
 BackgroundTransparency=1,
@@ -12983,11 +12977,9 @@ TextStrokeTransparency=0.2,
 TextStrokeColor3=Color3.fromRGB(120,0,0),
 })
 
--- Pulse via UIScale
 local pulseScale=am("UIScale",{Scale=0.6,Parent=main})
 local ghostScaleW=am("UIScale",{Scale=0.6,Parent=ghostWhite})
 
--- Scrolling scanline
 local scan=am("Frame",{
 Parent=container,
 BackgroundColor3=Color3.fromRGB(255,30,30),
@@ -13004,10 +12996,6 @@ an(ghostScaleW,duration*0.5,{Scale=1.18},Enum.EasingStyle.Back,Enum.EasingDirect
 local startTime=tick()
 local conn
 
--- State machine for the main S scramble:
---   scrambling -> preS_pause (0.04s hold on last scramble char)
---   -> showingS (bigger, deeper red, flicker dark/bright, outline)
---   -> postS_pause (0.04s hold on S) -> scrambling
 local state="scrambling"
 local stateUntil=0
 local lastChange=0
@@ -13081,7 +13069,6 @@ main.TextStrokeColor3=Color3.fromRGB(120,0,0)
 end
 end
 
--- 70% chance per frame to reshuffle each background code line
 for _,lbl in ipairs(lines)do
 if math.random()<0.7 then
 lbl.Text=rngStr(math.random(8,32))
@@ -13089,7 +13076,6 @@ lbl.Position=UDim2.new(math.random(),0,math.random(),0)
 end
 end
 
--- ~50% chance per frame to relocate each rectangle (data corruption flicker)
 for _,rect in ipairs(rects)do
 if math.random()<0.5 then
 rect.Position=UDim2.new(math.random(),0,math.random(),0)
@@ -13098,11 +13084,9 @@ rect.BackgroundTransparency=math.random(0,40)/100
 end
 end
 
--- Jitter ghost
 local jitter=math.max(1,8*(1-progress))
 ghostWhite.Position=UDim2.new(0.5,math.random(-jitter,jitter)+3,0.5,math.random(-jitter,jitter)-1)
 
--- Random tear on main S (only during scramble; keep S clean)
 if state=="scrambling"and math.random()<0.18 then
 main.Position=UDim2.new(0.5,math.random(-6,6),0.5,0)
 else
@@ -13112,7 +13096,6 @@ end
 scan.Position=UDim2.new(0,0,(elapsed/duration*1.5)%1,0)
 end)
 
--- Lock and fade out
 task.delay(duration*0.7,function()
 main.Text="S"
 ghostWhite.Text="S"
@@ -13154,13 +13137,11 @@ end
 task.wait(0.06)
 au.Closed=false
 
--- Cool intro: tilted spin-in + extra scale punch
 au.UIElements.Main.Rotation=-10
 an(au.UIElements.Main,0.55,{
 Rotation=0,
 },Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
 
--- Fire glitch overlay (delayed slightly so it shows after frame is visible)
 task.spawn(function()
 au.UIElements.Main.Visible=true
 PlayGlitchOverlay(0.55,true)
@@ -13264,12 +13245,10 @@ end
 au.CanDropdown=false
 au.Closed=true
 
--- Glitch outro
 task.spawn(function()
 PlayGlitchOverlay(0.4,true)
 end)
 
--- Cool outro: tilt and spin away while shrinking
 an(au.UIElements.Main,0.45,{
 Rotation=8,
 },Enum.EasingStyle.Quint,Enum.EasingDirection.In):Play()
