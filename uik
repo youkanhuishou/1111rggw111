@@ -12889,13 +12889,18 @@ p.Size=B
 end
 end
 
--- Glitch overlay: huge scrambling "S" with pulse + red scanline
+-- Glitch overlay: huge scrambling "S" with pulse + 16 red mono code lines + scanline
 local function PlayGlitchOverlay(duration,fadeOut)
 duration=duration or 0.55
 local chars="01!@#$%^&*<>?/\\|+-=_[](){}~`SsZzXx0123456789"
 local function rngChar()
 local idx=math.random(1,#chars)
 return chars:sub(idx,idx)
+end
+local function rngStr(len)
+local t={}
+for i=1,len do t[i]=rngChar() end
+return table.concat(t)
 end
 
 local container=am("Frame",{
@@ -12907,21 +12912,30 @@ Parent=au.UIElements.Main,
 ClipsDescendants=true,
 })
 
--- Chromatic-aberration ghost layers behind the main S
-local ghostBlue=am("TextLabel",{
+-- 16 red monospace code lines scattered around (background detail)
+local lines={}
+for i=1,16 do
+local lbl=am("TextLabel",{
 Parent=container,
 BackgroundTransparency=1,
-AnchorPoint=Vector2.new(0.5,0.5),
-Position=UDim2.new(0.5,-4,0.5,2),
-Size=UDim2.new(0,400,0,400),
-Font=Enum.Font.Bangers,
-Text="S",
-TextColor3=Color3.fromRGB(0,180,255),
-TextScaled=true,
-TextTransparency=0.55,
-ZIndex=997,
+TextColor3=Color3.fromRGB(255,40,40),
+Font=Enum.Font.Code,
+TextSize=14+math.random(0,8),
+TextXAlignment=Enum.TextXAlignment.Left,
+TextYAlignment=Enum.TextYAlignment.Center,
+Size=UDim2.new(0,200+math.random(0,260),0,18),
+Position=UDim2.new(math.random(),0,math.random(),0),
+Text=rngStr(math.random(8,32)),
+TextTransparency=0,
+ZIndex=996,
+TextStrokeTransparency=0.6,
+TextStrokeColor3=Color3.fromRGB(120,0,0),
 })
-local ghostRed=am("TextLabel",{
+table.insert(lines,lbl)
+end
+
+-- White ghost layer (gives a soft glow / hard-to-pin "echo")
+local ghostWhite=am("TextLabel",{
 Parent=container,
 BackgroundTransparency=1,
 AnchorPoint=Vector2.new(0.5,0.5),
@@ -12952,10 +12966,9 @@ TextStrokeTransparency=0.2,
 TextStrokeColor3=Color3.fromRGB(120,0,0),
 })
 
--- Pulse: scale up/down via UIScale child
+-- Pulse via UIScale
 local pulseScale=am("UIScale",{Scale=0.6,Parent=main})
-local ghostScaleA=am("UIScale",{Scale=0.6,Parent=ghostBlue})
-local ghostScaleB=am("UIScale",{Scale=0.6,Parent=ghostRed})
+local ghostScaleW=am("UIScale",{Scale=0.6,Parent=ghostWhite})
 
 -- Scrolling scanline
 local scan=am("Frame",{
@@ -12968,10 +12981,8 @@ Position=UDim2.new(0,0,0,0),
 ZIndex=998,
 })
 
--- Animate pulse: punch in then settle, with rhythmic micro-pulses
 an(pulseScale,duration*0.45,{Scale=1.25},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
-an(ghostScaleA,duration*0.5,{Scale=1.32},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
-an(ghostScaleB,duration*0.5,{Scale=1.18},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
+an(ghostScaleW,duration*0.5,{Scale=1.18},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
 
 local startTime=tick()
 local lastScrambleSettle=0
@@ -12982,34 +12993,39 @@ if elapsed>=duration then
 if conn then conn:Disconnect() end
 return
 end
+local progress=elapsed/duration
 
 -- Scramble main letter: bias toward "S" as we approach the end
-local progress=elapsed/duration
 local settleChance=progress*progress
 if math.random()<settleChance then
 main.Text="S"
-ghostBlue.Text="S"
-ghostRed.Text="S"
+ghostWhite.Text="S"
 else
 local c=rngChar()
 main.Text=c
-ghostBlue.Text=rngChar()
-ghostRed.Text=rngChar()
+ghostWhite.Text=rngChar()
 end
 
--- Random jitter on ghost positions for chromatic aberration shake
-local jitter=math.max(1,8*(1-progress))
-ghostBlue.Position=UDim2.new(0.5,math.random(-jitter,jitter)-3,0.5,math.random(-jitter,jitter)+1)
-ghostRed.Position=UDim2.new(0.5,math.random(-jitter,jitter)+3,0.5,math.random(-jitter,jitter)-1)
+-- 70% chance per frame to reshuffle each code line
+for _,lbl in ipairs(lines)do
+if math.random()<0.7 then
+lbl.Text=rngStr(math.random(8,32))
+lbl.Position=UDim2.new(math.random(),0,math.random(),0)
+end
+end
 
--- Random brief horizontal shift on main for "tear" feel
+-- Jitter ghost for shake
+local jitter=math.max(1,8*(1-progress))
+ghostWhite.Position=UDim2.new(0.5,math.random(-jitter,jitter)+3,0.5,math.random(-jitter,jitter)-1)
+
+-- Random horizontal tear on the main S
 if math.random()<0.18 then
 main.Position=UDim2.new(0.5,math.random(-6,6),0.5,0)
 else
 main.Position=UDim2.new(0.5,0,0.5,0)
 end
 
--- Micro pulses on scale every ~0.08s
+-- Micro pulses every ~0.08s
 if elapsed-lastScrambleSettle>0.08 then
 lastScrambleSettle=elapsed
 local kick=1+math.random()*0.18
@@ -13019,20 +13035,24 @@ end
 scan.Position=UDim2.new(0,0,(elapsed/duration*1.5)%1,0)
 end)
 
--- Fade out at the end (lock onto S, then dissolve)
+-- Lock and fade out
 task.delay(duration*0.7,function()
 main.Text="S"
-ghostBlue.Text="S"
-ghostRed.Text="S"
+ghostWhite.Text="S"
 local fadeT=duration*0.3
 an(main,fadeT,{
 TextTransparency=1,
 TextStrokeTransparency=1,
 },Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
-an(ghostBlue,fadeT,{TextTransparency=1},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
-an(ghostRed,fadeT,{TextTransparency=1},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
+an(ghostWhite,fadeT,{TextTransparency=1},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
 an(pulseScale,fadeT,{Scale=1.6},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
 an(scan,fadeT,{BackgroundTransparency=1},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
+for _,lbl in ipairs(lines)do
+an(lbl,fadeT,{
+TextTransparency=1,
+TextStrokeTransparency=1,
+},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
+end
 end)
 
 task.delay(duration+0.05,function()
