@@ -12905,8 +12905,8 @@ local container=am("Frame",{
 Name="GlitchFX",
 Size=UDim2.new(1,0,1,0),
 BackgroundTransparency=1,
-ZIndex=999,
-Parent=au.UIElements.Main,
+ZIndex=10,
+Parent=at.WindUI.ScreenGui,
 ClipsDescendants=true,
 })
 
@@ -12953,12 +12953,12 @@ BackgroundTransparency=1,
 AnchorPoint=Vector2.new(0.5,0.5),
 Position=UDim2.new(0.5,4,0.5,-2),
 Size=UDim2.new(0,400,0,400),
-Font=Enum.Font.Bangers,
+Font=Enum.Font.GothamBold,
 Text="S",
 TextColor3=Color3.fromRGB(255,255,255),
 TextScaled=true,
 TextTransparency=0.6,
-ZIndex=997,
+ZIndex=12,
 })
 
 local main=am("TextLabel",{
@@ -12966,15 +12966,22 @@ Parent=container,
 BackgroundTransparency=1,
 AnchorPoint=Vector2.new(0.5,0.5),
 Position=UDim2.new(0.5,0,0.5,0),
-Size=UDim2.new(0,400,0,400),
-Font=Enum.Font.Bangers,
+Size=UDim2.new(0,420,0,420),
+Font=Enum.Font.GothamBold,
 Text="S",
 TextColor3=Color3.fromRGB(255,40,40),
 TextScaled=true,
 TextTransparency=0.05,
-ZIndex=999,
-TextStrokeTransparency=0.2,
-TextStrokeColor3=Color3.fromRGB(120,0,0),
+ZIndex=14,
+TextStrokeTransparency=1,
+})
+local mainStroke=am("UIStroke",{
+Parent=main,
+Color=Color3.fromRGB(60,0,0),
+Thickness=3,
+Transparency=0.3,
+ApplyStrokeMode=Enum.ApplyStrokeMode.Contextual,
+LineJoinMode=Enum.LineJoinMode.Round,
 })
 
 local pulseScale=am("UIScale",{Scale=0.6,Parent=main})
@@ -12987,7 +12994,7 @@ BorderSizePixel=0,
 BackgroundTransparency=0.3,
 Size=UDim2.new(1,0,0,2),
 Position=UDim2.new(0,0,0,0),
-ZIndex=998,
+ZIndex=13,
 })
 
 an(pulseScale,duration*0.45,{Scale=1.25},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
@@ -13037,8 +13044,9 @@ stateUntil=now+sHoldDuration
 main.Text="S"
 ghostWhite.Text="S"
 an(pulseScale,0.06,{Scale=sScale},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
-main.TextStrokeTransparency=0
-main.TextStrokeColor3=Color3.fromRGB(60,0,0)
+mainStroke.Transparency=0
+mainStroke.Thickness=5
+mainStroke.Color=Color3.fromRGB(40,0,0)
 sFlickerLast=now
 sFlickerOn=true
 end
@@ -13048,10 +13056,12 @@ sFlickerLast=now
 sFlickerOn=not sFlickerOn
 if sFlickerOn then
 main.TextColor3=Color3.fromRGB(255,30,30)
-main.TextStrokeColor3=Color3.fromRGB(80,0,0)
+mainStroke.Color=Color3.fromRGB(60,0,0)
+mainStroke.Thickness=5
 else
 main.TextColor3=Color3.fromRGB(140,0,0)
-main.TextStrokeColor3=Color3.fromRGB(255,40,40)
+mainStroke.Color=Color3.fromRGB(255,60,60)
+mainStroke.Thickness=4
 end
 end
 if now>=stateUntil then
@@ -13064,8 +13074,9 @@ state="scrambling"
 lastChange=now
 an(pulseScale,0.06,{Scale=normalScale},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
 main.TextColor3=Color3.fromRGB(255,40,40)
-main.TextStrokeTransparency=0.2
-main.TextStrokeColor3=Color3.fromRGB(120,0,0)
+mainStroke.Transparency=0.3
+mainStroke.Thickness=3
+mainStroke.Color=Color3.fromRGB(60,0,0)
 end
 end
 
@@ -13102,7 +13113,9 @@ ghostWhite.Text="S"
 local fadeT=duration*0.3
 an(main,fadeT,{
 TextTransparency=1,
-TextStrokeTransparency=1,
+},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
+an(mainStroke,fadeT,{
+Transparency=1,
 },Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
 an(ghostWhite,fadeT,{TextTransparency=1},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
 an(pulseScale,fadeT,{Scale=1.6},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
