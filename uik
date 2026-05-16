@@ -13150,9 +13150,11 @@ end
 task.wait(0.06)
 au.Closed=false
 
-au.UIElements.Main.Rotation=-10
+-- Cool intro: vertical slide-in (no rotation; rotation breaks ClipsDescendants on inner ScrollFrames)
+local _origPos=au.UIElements.Main.Position
+au.UIElements.Main.Position=_origPos+UDim2.fromOffset(0,40)
 an(au.UIElements.Main,0.55,{
-Rotation=0,
+Position=_origPos,
 },Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
 
 task.spawn(function()
@@ -13262,9 +13264,16 @@ task.spawn(function()
 PlayGlitchOverlay(0.4,true)
 end)
 
+-- Cool outro: drop down + fade (no rotation; rotation breaks ClipsDescendants)
+local _closePos=au.UIElements.Main.Position
 an(au.UIElements.Main,0.45,{
-Rotation=8,
+Position=_closePos+UDim2.fromOffset(0,40),
 },Enum.EasingStyle.Quint,Enum.EasingDirection.In):Play()
+task.delay(0.5,function()
+if au.UIElements.Main and not au.Destroyed then
+au.UIElements.Main.Position=_closePos
+end
+end)
 
 an(au.UIElements.Main.Background,0.32,{
 ImageTransparency=1,
