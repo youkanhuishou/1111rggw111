@@ -12985,28 +12985,86 @@ an(pulseScale,duration*0.45,{Scale=1.25},Enum.EasingStyle.Back,Enum.EasingDirect
 an(ghostScaleW,duration*0.5,{Scale=1.18},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
 
 local startTime=tick()
-local lastScrambleSettle=0
 local conn
+
+-- State machine for the main S scramble:
+--   scrambling -> preS_pause (0.04s hold on last scramble char)
+--   -> showingS (bigger, deeper red, flicker dark/bright, outline)
+--   -> postS_pause (0.04s hold on S) -> scrambling
+local state="scrambling"
+local stateUntil=0
+local lastChange=0
+local scrambleInterval=0.045
+local sHoldDuration=0.16
+local pauseDuration=0.04
+local sFlickerLast=0
+local sFlickerOn=true
+local normalScale=1.25
+local sScale=1.45
+
 conn=game:GetService("RunService").RenderStepped:Connect(function()
-local elapsed=tick()-startTime
+local now=tick()
+local elapsed=now-startTime
 if elapsed>=duration then
 if conn then conn:Disconnect() end
 return
 end
 local progress=elapsed/duration
 
--- Scramble main letter: bias toward "S" as we approach the end
+if state=="scrambling"then
+if now-lastChange>=scrambleInterval then
+lastChange=now
 local settleChance=progress*progress
 if math.random()<settleChance then
-main.Text="S"
-ghostWhite.Text="S"
+state="preS_pause"
+stateUntil=now+pauseDuration
 else
 local c=rngChar()
+if c=="S"or c=="s"then c="X"end
 main.Text=c
 ghostWhite.Text=rngChar()
 end
+end
+elseif state=="preS_pause"then
+if now>=stateUntil then
+state="showingS"
+stateUntil=now+sHoldDuration
+main.Text="S"
+ghostWhite.Text="S"
+an(pulseScale,0.06,{Scale=sScale},Enum.EasingStyle.Back,Enum.EasingDirection.Out):Play()
+main.TextStrokeTransparency=0
+main.TextStrokeColor3=Color3.fromRGB(60,0,0)
+sFlickerLast=now
+sFlickerOn=true
+end
+elseif state=="showingS"then
+if now-sFlickerLast>=0.04 then
+sFlickerLast=now
+sFlickerOn=not sFlickerOn
+if sFlickerOn then
+main.TextColor3=Color3.fromRGB(255,30,30)
+main.TextStrokeColor3=Color3.fromRGB(80,0,0)
+else
+main.TextColor3=Color3.fromRGB(140,0,0)
+main.TextStrokeColor3=Color3.fromRGB(255,40,40)
+end
+end
+if now>=stateUntil then
+state="postS_pause"
+stateUntil=now+pauseDuration
+end
+elseif state=="postS_pause"then
+if now>=stateUntil then
+state="scrambling"
+lastChange=now
+an(pulseScale,0.06,{Scale=normalScale},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
+main.TextColor3=Color3.fromRGB(255,40,40)
+main.TextStrokeTransparency=0.2
+main.TextStrokeColor3=Color3.fromRGB(120,0,0)
+end
+end
 
--- 70% chance per frame to reshuffle each code line
+-- 70% chance per frame to reshuffle each background code line
 for _,lbl in ipairs(lines)do
 if math.random()<0.7 then
 lbl.Text=rngStr(math.random(8,32))
@@ -13014,22 +13072,15 @@ lbl.Position=UDim2.new(math.random(),0,math.random(),0)
 end
 end
 
--- Jitter ghost for shake
+-- Jitter ghost
 local jitter=math.max(1,8*(1-progress))
 ghostWhite.Position=UDim2.new(0.5,math.random(-jitter,jitter)+3,0.5,math.random(-jitter,jitter)-1)
 
--- Random horizontal tear on the main S
-if math.random()<0.18 then
+-- Random tear on main S (only during scramble; keep S clean)
+if state=="scrambling"and math.random()<0.18 then
 main.Position=UDim2.new(0.5,math.random(-6,6),0.5,0)
 else
 main.Position=UDim2.new(0.5,0,0.5,0)
-end
-
--- Micro pulses every ~0.08s
-if elapsed-lastScrambleSettle>0.08 then
-lastScrambleSettle=elapsed
-local kick=1+math.random()*0.18
-an(pulseScale,0.07,{Scale=1.25*kick},Enum.EasingStyle.Quad,Enum.EasingDirection.Out):Play()
 end
 
 scan.Position=UDim2.new(0,0,(elapsed/duration*1.5)%1,0)
